@@ -1,0 +1,318 @@
+/* ==========================================
+   1. GLOBAL RESETS & GENERAL STYLES
+   ========================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: #f8fafc; /* Soft gray/blue background */
+  color: #334155;            /* Deep slate color for readable text */
+  padding: 3rem 1.5rem;      /* Generous spacing around the page */
+}
+
+.container {
+  max-width: 950px;
+  margin: 0 auto;
+}
+
+/* ==========================================
+   2. HEADER STYLING
+   ========================================== */
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+header h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+header .blue {
+  color: #2563eb; /* PassCraft Blue accent */
+}
+
+header p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+/* ==========================================
+   3. RESPONSIVE GRID LAYOUT
+   ========================================== */
+.grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr; /* Left column is wider than sidebar */
+  gap: 1.5rem;
+}
+
+/* Mobile Responsive: Stack columns vertically on small screens */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.25rem; /* Soft rounded corners */
+  padding: 1.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Space between sidebar cards */
+}
+
+/* ==========================================
+   4. INPUT FIELD & VISIBILITY TOGGLE
+   ========================================== */
+.label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.input-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+#password {
+  width: 100%;
+  padding: 0.85rem 3rem 0.85rem 1.25rem;
+  font-family: 'JetBrains Mono', monospace; /* Monospace font so characters are easy to read */
+  font-size: 1.1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+/* Highlight input field on focus */
+#password:focus {
+  border-color: #2563eb;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Eye icon button inside the input field */
+#toggle {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+/* ==========================================
+   5. STRENGTH METER BARS
+   ========================================== */
+.meter-section {
+  margin-bottom: 1.5rem;
+}
+
+.meter-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+}
+
+.bars {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* 5 equal-width bars */
+  gap: 0.4rem;
+  height: 0.4rem;
+}
+
+.bar {
+  background-color: #e2e8f0; /* Default gray when empty */
+  border-radius: 1rem;
+  transition: background-color 0.3s ease; /* Smooth color transition */
+}
+
+/* ==========================================
+   6. METRIC STATS & ALERTS
+   ========================================== */
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-box {
+  background: #f8fafc;
+  padding: 0.85rem;
+  border-radius: 0.75rem;
+  border: 1px solid #f1f5f9;
+}
+
+.stat-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  display: block;
+}
+
+.stat-val {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-top: 0.15rem;
+  display: block;
+}
+
+/* Alert Banners (Breach Check) */
+.alert {
+  padding: 0.85rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 1.5rem;
+}
+
+.alert-danger {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #991b1b; /* Red warning */
+}
+
+.alert-success {
+  background: #f0fdf4;
+  border: 1px solid #dcfce7;
+  color: #166534; /* Green success */
+}
+
+/* Tips Box */
+.tips-box {
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+
+.tips-box h4 {
+  font-size: 0.75rem;
+  color: #1e40af;
+  margin-bottom: 0.4rem;
+}
+
+#tips-list {
+  list-style-position: inside;
+  font-size: 0.75rem;
+  color: #1e3a8a;
+}
+
+/* ==========================================
+   7. CHECKLIST & PASSPHRASE GENERATOR
+   ========================================== */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chk {
+  padding: 0.6rem 0.85rem;
+  border-radius: 0.5rem;
+  background: #f8fafc;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+/* Active/Passed Checklist Items */
+.chk.ok {
+  background: #f0fdf4;
+  border: 1px solid #dcfce7;
+  color: #166534;
+}
+
+.desc {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.85rem;
+  line-height: 1.4;
+}
+
+.gen-box {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+#gen-pass {
+  flex: 1;
+  padding: 0.6rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font-family: monospace;
+  font-size: 0.85rem;
+  background: #f8fafc;
+  outline: none;
+}
+
+/* Buttons */
+.btn {
+  width: 100%;
+  background: #2563eb;
+  color: white;
+  padding: 0.65rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn:hover {
+  background: #1d4ed8;
+}
+
+#copy-btn {
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#copy-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================
+   8. UTILITY CLASSES
+   ========================================== */
+.hidden {
+  display: none !important;
+}
