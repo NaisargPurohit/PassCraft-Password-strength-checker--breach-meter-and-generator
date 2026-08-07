@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.parent.postMessage({ type: 'PASSCRAFT_CLOSE_IFRAME' }, '*');
   });
 
-  // Listen for initial state from parent content script
   window.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'PASSCRAFT_INIT_DATA') {
       currentDomain = (event.data.currentDomain || '').replace(/^www\./, '').toLowerCase();
@@ -37,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (e) {}
 
-      // Anti-phishing domain comparison check
       const isDomainMatch = savedDomain && (currentDomain.endsWith(savedDomain) || savedDomain.endsWith(currentDomain));
 
       const card = document.createElement('div');
@@ -53,12 +51,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       card.addEventListener('click', () => {
         if (!isDomainMatch && savedDomain) {
-          // Show Phishing Warning
           phishingDesc.innerHTML = `
             You are attempting to autofill on <strong>${escapeHtml(currentDomain)}</strong>, but this credential belongs to <strong>${escapeHtml(savedDomain)}</strong>.
             <br><br>
-            <button id="override-btn" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer;">Fill Anyway (Unsafe)</button>
-            <button id="cancel-btn" style="background:#cbd5e1; color:#334155; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer; margin-left:4px;">Cancel</button>
+            <button id="override-btn" class="btn-override-alert">Fill Anyway (Unsafe)</button>
+            <button id="cancel-btn" class="btn-cancel-alert">Cancel</button>
           `;
           phishingBanner.classList.remove('hidden');
 

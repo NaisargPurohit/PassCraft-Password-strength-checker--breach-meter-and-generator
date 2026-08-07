@@ -1,9 +1,9 @@
 /**
  * PassCraft Content Script
- * Scans webpage inputs, injects 🛡️ icons, handles secure iframe modals, and executes autofill.
+ * Scans webpage inputs, injects icons via CSS classes, manages iframe modals, and executes autofill.
  */
 
-// Local Web Crypto PBKDF2 + AES-GCM Key Derivation for Client-Side Decryption
+// Local Web Crypto PBKDF2 + AES-GCM Key Derivation
 async function deriveKey(masterPassword, saltHex) {
   const encoder = new TextEncoder();
   const hexBytes = new Uint8Array((saltHex.match(/.{1,2}/g) || []).map(b => parseInt(b, 16)));
@@ -28,15 +28,25 @@ async function decryptPayload(encryptedBase64, ivBase64, key) {
 let activeInput = null;
 let activeIframe = null;
 
+// Inject extension stylesheet into host page context if missing
+function ensureExtensionStyles() {
+  if (!document.getElementById('passcraft-injected-styles')) {
+    const link = document.createElement('link');
+    link.id = 'passcraft-injected-styles';
+    link.rel = 'stylesheet';
+    link.href = chrome.runtime.getURL('styles.css');
+    (document.head || document.documentElement).appendChild(link);
+  }
+}
+
 // Scan & Inject PassCraft Icon into Input Fields
 function scanAndInjectInputs() {
+  ensureExtensionStyles();
   const inputs = document.querySelectorAll("input[type='password'], input[type='email'], input[type='text']");
 
   inputs.forEach((input) => {
-    // Skip if icon already injected
     if (input.dataset.passcraftInjected) return;
 
-    // Check if input is likely a login/username/password field
     const nameOrId = `${input.name || ''} ${input.id || ''} ${input.placeholder || ''} ${input.type || ''}`.toLowerCase();
     const isLoginField = input.type === 'password' || /user|login|email|pass|auth|account/.test(nameOrId);
 
@@ -44,26 +54,14 @@ function scanAndInjectInputs() {
 
     input.dataset.passcraftInjected = 'true';
 
-    // Position wrapper container
     const wrapper = document.createElement('div');
-    wrapper.style.position = 'relative';
-    wrapper.style.display = 'inline-block';
-    wrapper.style.width = input.style.width || '100%';
+    wrapper.className = 'passcraft-input-wrapper';
 
-    // Create 🛡️ PassCraft trigger button
     const iconBtn = document.createElement('button');
     iconBtn.type = 'button';
     iconBtn.innerHTML = '🛡️';
     iconBtn.title = 'PassCraft Zero-Knowledge Autofill';
-    iconBtn.style.position = 'absolute';
-    iconBtn.style.right = '8px';
-    iconBtn.style.top = '50%';
-    iconBtn.style.transform = 'translateY(-50%)';
-    iconBtn.style.background = 'none';
-    iconBtn.style.border = 'none';
-    iconBtn.style.cursor = 'pointer';
-    iconBtn.style.fontSize = '14px';
-    iconBtn.style.zIndex = '9999';
+    iconBtn.className = 'passcraft-trigger-icon';
 
     iconBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -83,15 +81,14 @@ function scanAndInjectInputs() {
 // Open Floating Credential Selector Iframe
 async function openVaultIframe(targetInput) {
   closeVaultIframe();
+  ensureExtensionStyles();
 
-  // Fetch session & vault data from background service worker
   chrome.runtime.sendMessage({ action: 'GET_SESSION' }, async (sessionRes) => {
     if (!sessionRes || !sessionRes.success || !sessionRes.token) {
       alert('PassCraft: Please click the extension icon in your browser toolbar to unlock your vault first.');
       return;
     }
 
-    // Read Master Password & Salt from storage.session or storage.local
     let session = {};
     if (chrome.storage.session) {
       session = await chrome.storage.session.get(['masterPassword', 'salt']);
@@ -105,14 +102,12 @@ async function openVaultIframe(targetInput) {
       return;
     }
 
-    // Fetch Encrypted Vault Items
     chrome.runtime.sendMessage({ action: 'FETCH_VAULT' }, async (vaultRes) => {
       if (!vaultRes || !vaultRes.success) {
         alert('PassCraft: Could not fetch vault entries.');
         return;
       }
 
-      // Decrypt items locally in Content Script context
       const masterKey = await deriveKey(session.masterPassword, session.salt);
       const decryptedItems = [];
 
@@ -131,19 +126,12 @@ async function openVaultIframe(targetInput) {
         }
       }
 
-      // Create & Position Iframe
       const rect = targetInput.getBoundingClientRect();
       activeIframe = document.createElement('iframe');
       activeIframe.src = chrome.runtime.getURL('iframe.html');
-      activeIframe.style.position = 'fixed';
+      activeIframe.className = 'passcraft-iframe-overlay';
       activeIframe.style.top = `${Math.min(window.innerHeight - 320, rect.bottom + 6)}px`;
       activeIframe.style.left = `${Math.min(window.innerWidth - 320, rect.left)}px`;
-      activeIframe.style.width = '300px';
-      activeIframe.style.height = '300px';
-      activeIframe.style.border = 'none';
-      activeIframe.style.zIndex = '2147483647';
-      activeIframe.style.borderRadius = '12px';
-      activeIframe.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
 
       document.body.appendChild(activeIframe);
 
@@ -190,14 +178,12 @@ window.addEventListener('message', (event) => {
         ? activeInput
         : form.querySelector("input[type='email'], input[type='text']");
 
-      // Autofill Password
       if (pwdInput && password) {
         pwdInput.value = password;
         pwdInput.dispatchEvent(new Event('input', { bubbles: true }));
         pwdInput.dispatchEvent(new Event('change', { bubbles: true }));
       }
 
-      // Autofill Username
       if (userInput && username) {
         userInput.value = username;
         userInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -209,7 +195,6 @@ window.addEventListener('message', (event) => {
   }
 });
 
-// Run Initial Scan & Observer for Dynamic Single Page Apps (SPAs)
 scanAndInjectInputs();
 
 const observer = new MutationObserver(() => {
