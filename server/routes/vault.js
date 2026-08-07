@@ -5,24 +5,19 @@ import { authMiddleware } from '../middleware/auth.js';
 const router = express.Router();
 router.use(authMiddleware);
 
-// TODO: add bulk import/export endpoints for encrypted vault backups
+// TODO: add export to csv button here later when product asks for it
 
-/**
- * Fetch all encrypted vault items for the authenticated user.
- */
 router.get('/', async (req, res) => {
   try {
     const items = await VaultItem.find({ userId: req.user.userId }).sort({ updatedAt: -1 });
+    // console.log("fetched items count:", items.length);
     return res.json({ items });
   } catch (err) {
-    console.error('Error fetching vault items:', err);
+    // console.error("fetch vault err:", err);
     return res.status(500).json({ error: 'Failed to retrieve vault items' });
   }
 });
 
-/**
- * Save a new encrypted vault item.
- */
 router.post('/', async (req, res) => {
   try {
     const { encryptedData, iv } = req.body || {};
@@ -40,14 +35,10 @@ router.post('/', async (req, res) => {
     await item.save();
     return res.status(201).json({ message: 'Vault item saved', item });
   } catch (err) {
-    console.error('Error saving vault item:', err);
     return res.status(500).json({ error: 'Failed to save encrypted vault item' });
   }
 });
 
-/**
- * Update an existing encrypted vault item.
- */
 router.put('/:id', async (req, res) => {
   try {
     const { encryptedData, iv } = req.body || {};
@@ -67,28 +58,23 @@ router.put('/:id', async (req, res) => {
 
     return res.json({ message: 'Vault item updated', item });
   } catch (err) {
-    console.error('Error updating vault item:', err);
     return res.status(500).json({ error: 'Failed to update vault item' });
   }
 });
 
-/**
- * Delete a vault item by ID.
- */
 router.delete('/:id', async (req, res) => {
   try {
-    const deletedItem = await VaultItem.findOneAndDelete({
+    const deleted = await VaultItem.findOneAndDelete({
       _id: req.params.id,
       userId: req.user.userId,
     });
 
-    if (!deletedItem) {
+    if (!deleted) {
       return res.status(404).json({ error: 'Vault item not found or unauthorized' });
     }
 
     return res.json({ message: 'Vault item deleted successfully', id: req.params.id });
   } catch (err) {
-    console.error('Error deleting vault item:', err);
     return res.status(500).json({ error: 'Failed to delete vault item' });
   }
 });

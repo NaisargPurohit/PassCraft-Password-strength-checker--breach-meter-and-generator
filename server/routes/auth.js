@@ -8,11 +8,6 @@ import { authMiddleware } from '../middleware/auth.js';
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'passcraft-super-secret-jwt-key-2026';
 
-// TODO: add rate limiting middleware to register and login endpoints to block brute force attempts
-
-/**
- * Register a new user account.
- */
 router.post('/register', async (req, res) => {
   try {
     const { email, password, salt } = req.body || {};
@@ -22,17 +17,17 @@ router.post('/register', async (req, res) => {
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    const existingUser = await User.findOne({ email: cleanEmail });
-    if (existingUser) {
+    const existing = await User.findOne({ email: cleanEmail });
+    if (existing) {
       return res.status(400).json({ error: 'An account with this email already exists' });
     }
 
     const userSalt = salt || crypto.randomBytes(16).toString('hex');
-    const passwordHash = await bcrypt.hash(password, 10);
+    const hash = await bcrypt.hash(password, 10);
 
     const newUser = new User({
       email: cleanEmail,
-      passwordHash,
+      passwordHash: hash,
       salt: userSalt,
       role: 'Admin',
     });
@@ -44,6 +39,8 @@ router.post('/register', async (req, res) => {
       JWT_SECRET,
       { expiresIn: '7d' }
     );
+
+    // console.log("user registered ok:", newUser.email);
 
     return res.status(201).json({
       message: 'Account created successfully',
@@ -58,14 +55,11 @@ router.post('/register', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error('Registration error:', err);
+    // console.error("reg error:", err);
     return res.status(500).json({ error: 'Failed to create user account' });
   }
 });
 
-/**
- * Authenticate existing user.
- */
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body || {};
@@ -80,8 +74,8 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!isMatch) {
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
@@ -104,14 +98,11 @@ router.post('/login', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error('Login error:', err);
+    // console.error("login err:", err);
     return res.status(500).json({ error: 'Authentication failed' });
   }
 });
 
-/**
- * Fetch current user profile.
- */
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select('-passwordHash');
@@ -122,9 +113,6 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
-/**
- * Fetch automated threat intelligence alerts.
- */
 router.get('/threat-intel', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select('isBreached breaches lastThreatCheck');
