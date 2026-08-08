@@ -1,82 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { decryptData } from '../utils/crypto';
-import { analyzeVaultHealth } from '../utils/vaultHealth';
+import React, { useState } from 'react';
+import { useVaultHealth } from '../hooks/useVaultHealth';
 
 export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
-  const { token, user, masterKey } = authState || {};
-
-  const [healthReport, setHealthReport] = useState(null);
-  const [threatIntel, setThreatIntel] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'compromised' | 'reused' | 'weak' | 'healthy'
-
-  // Fetch Vault & Compute Health Report
-  useEffect(() => {
-    if (!token || !masterKey) return;
-
-    const loadDashboardData = async () => {
-      setLoading(true);
-      try {
-        // 1. Fetch Encrypted Vault Items
-        const vaultRes = await fetch('/api/vault', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (vaultRes.ok) {
-          const vaultData = await vaultRes.json();
-          const decryptedList = [];
-
-          for (const item of vaultData.items || []) {
-            try {
-              const decryptedPayload = await decryptData(
-                item.encryptedData,
-                item.iv,
-                masterKey
-              );
-              decryptedList.push({
-                id: item._id,
-                title: decryptedPayload.title || decryptedPayload.url || 'Untitled',
-                url: decryptedPayload.url || '',
-                username: decryptedPayload.username || '',
-                password: decryptedPayload.password || '',
-              });
-            } catch (err) {
-              console.error('Decryption failed for item:', item._id);
-            }
-          }
-
-          // 2. Compute Security Scoring & Health Breakdown
-          const report = await analyzeVaultHealth(decryptedList);
-          setHealthReport(report);
-        }
-
-        // 3. Fetch Automated Threat Intelligence Alerts
-        const threatRes = await fetch('/api/auth/threat-intel', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (threatRes.ok) {
-          const intel = await threatRes.json();
-          setThreatIntel(intel);
-        }
-      } catch (err) {
-        console.error('Error loading health dashboard:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadDashboardData();
-  }, [token, masterKey]);
+  const { token, user, masterKey } = authState ?? {};
+  const { healthReport: vaultHealthPayload, threatIntel, loading } = useVaultHealth(token, masterKey);
+  const [activeFilter, setActiveFilter] = useState('all');
 
   if (!token || !masterKey) {
     return (
       <div className="bg-white border border-slate-200 rounded-2xl p-10 shadow-sm text-center">
         <div className="text-4xl mb-3">📊</div>
         <h2 className="text-xl font-extrabold text-slate-800 mb-2">
-          Password Health & Threat Intelligence Dashboard
+          Password Health & Threat Intelligence
         </h2>
         <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
-          Sign in to analyze your vault's security score, identify reused & compromised passwords, and view automated breach alerts.
+          Sign in to analyze vault security score, identify compromised passwords, and view threat alerts.
         </p>
         <button
           onClick={onOpenAuth}
@@ -88,49 +26,45 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
     );
   }
 
-  if (loading || !healthReport) {
+  if (loading || !vaultHealthPayload) {
     return (
       <div className="bg-white border border-slate-200 rounded-2xl p-10 shadow-sm text-center text-slate-500 text-sm">
-        Analyzing vault health, calculating security score & querying threat intelligence...
+        Calculating vault health score and checking threat alerts...
       </div>
     );
   }
 
-  const { score, total, compromised, reused, weak, healthy, details } = healthReport;
+  const { score, total, compromised, reused, weak, healthy, details } = vaultHealthPayload;
 
-  // Determine score rating label & color
-  let scoreColor = '#22c55e'; // Green
+  let scoreColor = '#22c55e';
   let scoreText = 'Excellent';
   if (score < 50) {
-    scoreColor = '#ef4444'; // Red
+    scoreColor = '#ef4444';
     scoreText = 'Critical';
   } else if (score < 80) {
-    scoreColor = '#eab308'; // Yellow/Orange
+    scoreColor = '#eab308';
     scoreText = 'Needs Attention';
   }
 
-  // Circular SVG Ring Dimensions
   const radius = 64;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score / 100) * circumference;
 
-  // Get items to display based on selected filter
   const getFilteredItems = () => {
-    if (activeFilter === 'compromised') return compromised;
-    if (activeFilter === 'reused') return reused;
-    if (activeFilter === 'weak') return weak;
-    if (activeFilter === 'healthy') return healthy;
-    return details;
+    switch (activeFilter) {
+      case 'compromised': return compromised;
+      case 'reused': return reused;
+      case 'weak': return weak;
+      case 'healthy': return healthy;
+      default: return details;
+    }
   };
 
   const filteredItems = getFilteredItems();
 
   return (
     <div className="space-y-6">
-      {/* Top Banner: Score & Threat Intelligence */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        {/* Score Ring Card */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
             Vault Security Score
@@ -138,7 +72,6 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
 
           <div className="relative w-40 h-40 flex items-center justify-center">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 160 160">
-              {/* Background Gray Ring */}
               <circle
                 cx="80"
                 cy="80"
@@ -147,7 +80,6 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
                 strokeWidth="12"
                 fill="transparent"
               />
-              {/* Animated Progress Ring */}
               <circle
                 cx="80"
                 cy="80"
@@ -162,7 +94,6 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
               />
             </svg>
 
-            {/* Score Text Overlay */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-3xl font-extrabold text-slate-800">{score}</span>
               <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: scoreColor }}>
@@ -176,7 +107,6 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
           </p>
         </div>
 
-        {/* Automated Threat Intelligence Alert Card */}
         <div className="md:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-center mb-3">
@@ -188,13 +118,13 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
               </span>
             </div>
 
-            {threatIntel && threatIntel.isBreached ? (
+            {threatIntel?.isBreached ? (
               <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-3 text-xs text-red-800">
                 <p className="font-bold flex items-center gap-1.5 mb-1 text-sm">
                   ⚠️ Threat Alert: Account Email Found in Breach!
                 </p>
                 <p className="text-red-700 leading-relaxed mb-2">
-                  Our background threat scanner detected that your email address (<strong className="text-slate-800">{user?.email}</strong>) was compromised in a public leak.
+                  Threat scanner detected your email (<strong className="text-slate-800">{user?.email}</strong>) in a public leak.
                 </p>
                 <ul className="list-disc list-inside space-y-1 text-red-900 font-medium">
                   {threatIntel.breaches.map((b, i) => (
@@ -210,22 +140,20 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
                   ✅ Account Email Safe
                 </p>
                 <p className="text-green-700 leading-relaxed">
-                  No public breach alerts associated with your account email (<strong className="text-slate-800">{user?.email}</strong>). Background threat monitoring checks public leak databases automatically.
+                  No public breach alerts associated with (<strong className="text-slate-800">{user?.email}</strong>).
                 </p>
               </div>
             )}
           </div>
 
           <div className="text-[11px] text-slate-400 border-t border-slate-100 pt-3 flex justify-between">
-            <span>Scan Engine: Zero-Knowledge K-Anonymity + HIBP</span>
+            <span>Scan Engine: HIBP Range API</span>
             <span>Last Scan: {threatIntel?.lastCheck ? new Date(threatIntel.lastCheck).toLocaleTimeString() : 'Just now'}</span>
           </div>
         </div>
       </div>
 
-      {/* 4 Health Category Metric Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Compromised */}
         <button
           onClick={() => setActiveFilter('compromised')}
           className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
@@ -248,7 +176,6 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
           </p>
         </button>
 
-        {/* Reused */}
         <button
           onClick={() => setActiveFilter('reused')}
           className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
@@ -271,7 +198,6 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
           </p>
         </button>
 
-        {/* Weak */}
         <button
           onClick={() => setActiveFilter('weak')}
           className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
@@ -294,7 +220,6 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
           </p>
         </button>
 
-        {/* Healthy */}
         <button
           onClick={() => setActiveFilter('healthy')}
           className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
@@ -318,7 +243,6 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
         </button>
       </div>
 
-      {/* Filtered Password Health Items List */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
           <h3 className="font-extrabold text-slate-800 text-sm capitalize">
@@ -362,7 +286,6 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
                     )}
                   </div>
 
-                  {/* Health Flags Badges */}
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
                     {item.isCompromised && (
                       <span className="text-[10px] font-bold bg-red-100 text-red-800 px-2 py-0.5 rounded-md">
