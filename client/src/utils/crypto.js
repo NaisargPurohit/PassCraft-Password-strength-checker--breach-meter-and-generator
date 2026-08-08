@@ -2,7 +2,7 @@
 export async function deriveMasterKey(password, saltHex) {
   const enc = new TextEncoder();
   const rawSalt = new Uint8Array((saltHex.match(/.{1,2}/g) || []).map(b => parseInt(b, 16)));
-  
+
   const baseKey = await window.crypto.subtle.importKey(
     'raw',
     enc.encode(password),

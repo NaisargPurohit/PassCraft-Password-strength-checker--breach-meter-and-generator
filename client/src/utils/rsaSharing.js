@@ -42,7 +42,7 @@ export async function generateRSAKeyPair() {
 
 /**
  * Export Public Key to Base64 SPKI format
- * @param {CryptoKey} publicKey 
+ * @param {CryptoKey} publicKey
  * @returns {Promise<string>}
  */
 export async function exportPublicKey(publicKey) {
@@ -52,7 +52,7 @@ export async function exportPublicKey(publicKey) {
 
 /**
  * Import Base64 SPKI string as RSA-OAEP Public Key
- * @param {string} spkiBase64 
+ * @param {string} spkiBase64
  * @returns {Promise<CryptoKey>}
  */
 export async function importPublicKey(spkiBase64) {
@@ -69,7 +69,7 @@ export async function importPublicKey(spkiBase64) {
 /**
  * Encrypt a raw AES key string/bytes using recipient's RSA Public Key
  * @param {string} payload - Serialized secret or key payload
- * @param {CryptoKey} recipientPublicKey 
+ * @param {CryptoKey} recipientPublicKey
  * @returns {Promise<string>} Base64 encrypted key
  */
 export async function encryptWithRSA(payload, recipientPublicKey) {
@@ -87,8 +87,8 @@ export async function encryptWithRSA(payload, recipientPublicKey) {
 
 /**
  * Decrypt RSA-encrypted payload using user's RSA Private Key
- * @param {string} encryptedBase64 
- * @param {CryptoKey} userPrivateKey 
+ * @param {string} encryptedBase64
+ * @param {CryptoKey} userPrivateKey
  * @returns {Promise<string>} Decrypted secret payload
  */
 export async function decryptWithRSA(encryptedBase64, userPrivateKey) {
