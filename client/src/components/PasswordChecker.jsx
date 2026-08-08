@@ -1,43 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import StrengthMeter from './StrengthMeter';
-import SecurityChecklist from './SecurityChecklist';
+import React, { useState, useEffect } from "react";
 import PassphraseGenerator from './PassphraseGenerator';
+import SecurityChecklist from './SecurityChecklist';
+import StrengthMeter from "./StrengthMeter";
 
 export default function PasswordChecker() {
-  const [pwd, setPwd] = useState('');
+  const [candidatePwd, setCandidatePwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
-  const [metrics, setMetrics] = useState(null);
+  const [analysisMetrics, setAnalysisMetrics] = useState(null);
 
   useEffect(() => {
-    // console.log("current pwd input:", pwd);
-    if (!pwd) {
-      setMetrics(null);
+    if (!candidatePwd) {
+      setAnalysisMetrics(null);
       return;
     }
 
-    // 300ms delay so we don't spam api on every keystroke
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch('/api/check', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: pwd }),
+        const checkRes = await fetch("/api/check", {
+          method: "POST",
+          headers: { 'Content-Type': "application/json" },
+          body: JSON.stringify({ password: candidatePwd }),
         });
 
-        if (!res.ok) {
-          // console.log("api check failed status:", res.status);
-          return;
-        }
+        if (!checkRes.ok) return;
 
-        const data = await res.json();
-        setMetrics(data);
+        const pwdAnalysis = await checkRes.json();
+        setAnalysisMetrics(pwdAnalysis);
       } catch (err) {
-        // console.error("fetch err:", err);
+        console.error('[PasswordChecker] Strength analysis failed:', err);
       }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [pwd]);
+  }, [candidatePwd]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr] gap-6">
@@ -49,9 +44,9 @@ export default function PasswordChecker() {
         <div className="relative flex items-center mb-6">
           <input
             type={showPwd ? 'text' : 'password'}
-            value={pwd}
-            onChange={(e) => setPwd(e.target.value)}
-            placeholder="Type password here..."
+            value={candidatePwd}
+            onChange={(e) => setCandidatePwd(e.target.value)}
+            placeholder="Type candidate password..."
             autoComplete="off"
             className="w-full py-3.5 pl-5 pr-12 font-mono-code text-base border border-slate-300 rounded-xl bg-slate-50 outline-none transition-all duration-200 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-600/10"
           />
@@ -65,11 +60,11 @@ export default function PasswordChecker() {
           </button>
         </div>
 
-        <StrengthMeter data={metrics} hasInput={Boolean(pwd)} />
+        <StrengthMeter data={analysisMetrics} hasInput={Boolean(candidatePwd)} />
       </div>
 
       <div className="flex flex-col gap-6">
-        <SecurityChecklist checks={metrics?.checks || {}} />
+        <SecurityChecklist checks={analysisMetrics?.checks ?? {}} />
         <PassphraseGenerator />
       </div>
     </div>
