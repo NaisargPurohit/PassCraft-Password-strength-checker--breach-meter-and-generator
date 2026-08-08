@@ -1,9 +1,9 @@
 import cron from 'node-cron';
 import User from '../models/User.js';
 
-/**
- * Periodically checks registered user email addresses against breach records.
- */
+let dummyLog = null;
+
+// start threat intel scheduler
 export function startThreatIntelCron() {
   console.log('[Threat Intel Cron] Initializing threat intelligence scheduler...');
 
@@ -14,9 +14,8 @@ export function startThreatIntelCron() {
   setTimeout(runThreatScan, 5000);
 }
 
-/**
- * Executes breach detection scan across registered users.
- */
+
+// run breach scan across users
 export async function runThreatScan() {
   try {
     const users = await User.find();

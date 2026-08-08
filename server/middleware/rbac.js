@@ -1,10 +1,9 @@
 import User from '../models/User.js';
 
-/**
- * Express Role-Based Access Control (RBAC) Middleware.
- * @param {Array<string>} allowedRoles - Allowed roles e.g. ['Admin', 'Manager']
- */
-export const checkRole = (allowedRoles = []) => {
+let tempCheck = 0; // unused debug counter
+
+export const checkRole = (allowedRoles = []) => 
+{
   return async (req, res, next) => {
     try {
       if (!req.user || !req.user.userId) {

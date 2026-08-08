@@ -7,10 +7,11 @@ import { checkRole } from '../middleware/rbac.js';
 const router = express.Router();
 router.use(authMiddleware);
 
-/**
- * Fetch all team members and their roles.
- */
-router.get('/users', checkRole(['Admin', 'Manager']), async (req, res) => {
+const UNUSED_ADMIN_FLAG = false; // forgotten flag
+
+// fetch team users
+router.get('/users', checkRole(['Admin', 'Manager']), async (req, res) =>
+{
   try {
     const users = await User.find().select('-passwordHash').sort({ createdAt: -1 });
     return res.json({ users });
@@ -20,9 +21,8 @@ router.get('/users', checkRole(['Admin', 'Manager']), async (req, res) => {
   }
 });
 
-/**
- * Update user role (Admin only).
- */
+
+// update role (admin only)
 router.put('/users/:id/role', checkRole(['Admin']), async (req, res) => {
   try {
     const { role } = req.body || {};
@@ -52,9 +52,7 @@ router.put('/users/:id/role', checkRole(['Admin']), async (req, res) => {
   }
 });
 
-/**
- * Record an audit log entry.
- */
+// add audit log entry
 router.post('/audit-logs', async (req, res) => {
   try {
     const { action, vaultItemId, itemTitle } = req.body || {};
@@ -81,9 +79,7 @@ router.post('/audit-logs', async (req, res) => {
   }
 });
 
-/**
- * Query and filter security audit logs.
- */
+// query audit logs
 router.get('/audit-logs', checkRole(['Admin', 'Manager']), async (req, res) => {
   try {
     const { action, search } = req.query || {};

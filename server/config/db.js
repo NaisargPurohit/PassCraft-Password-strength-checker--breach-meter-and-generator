@@ -1,8 +1,6 @@
 import mongoose from 'mongoose';
 
-/**
- * Connect to MongoDB instance using Mongoose.
- */
+// connect to mongo db
 const connectDB = async () => {
   try {
     const connStr = process.env.MONGODB_URI || 'mongodb://localhost:27017/passcraft';

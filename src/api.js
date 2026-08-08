@@ -1,36 +1,29 @@
-/**
- * PassCraft API Client
- * Handles password analysis and passphrase generation endpoints.
- */
+// api fetch helper functions
 
-/**
- * Sends a candidate password to the backend analysis endpoint.
- * @param {string} password
- * @returns {Promise<Object>}
- */
-export async function checkPasswordStrength(password) {
+// check password strength against backend api
+export async function checkPasswordStrength(pwd) {
+  // console.log("sending password to check:", pwd);
   const res = await fetch('/api/check', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password })
+    body: JSON.stringify({ password: pwd })
   });
 
   if (!res.ok) {
+    // TODO: add proper toast notification on error
     throw new Error(`API analysis error: ${res.status}`);
   }
 
   return res.json();
 }
 
-/**
- * Fetches a newly generated Diceware-style passphrase.
- * @returns {Promise<string>}
- */
+// get a new passphrase
 export async function generatePassphrase() {
   const res = await fetch('/api/generate');
   if (!res.ok) {
     throw new Error(`Passphrase generation error: ${res.status}`);
   }
   const data = await res.json();
+  // console.log("generated passphrase response:", data);
   return data.password;
 }

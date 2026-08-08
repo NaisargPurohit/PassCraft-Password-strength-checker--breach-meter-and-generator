@@ -1,9 +1,6 @@
-/**
- * PassCraft Content Script
- * Scans webpage inputs, injects icons via CSS classes, manages iframe modals, and executes autofill.
- */
+// content script for autofill icon injection
 
-// Local Web Crypto PBKDF2 + AES-GCM Key Derivation
+// derive key using pbkdf2
 async function deriveKey(masterPassword, saltHex) {
   const encoder = new TextEncoder();
   const hexBytes = new Uint8Array((saltHex.match(/.{1,2}/g) || []).map(b => parseInt(b, 16)));

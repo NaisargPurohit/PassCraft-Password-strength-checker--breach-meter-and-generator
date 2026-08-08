@@ -1,9 +1,7 @@
-/**
- * PassCraft Background Service Worker (Manifest V3)
- * Manages API requests, storage, and message routing between content scripts & extension UI.
- */
-
+// background service worker for extension
 const API_BASE_URL = 'http://localhost:5000/api';
+
+let unusedCache = null;
 
 // Message Listener
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

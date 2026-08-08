@@ -1,10 +1,8 @@
-/**
- * PassCraft DOM Manipulation & UI Updater
- * Handles element binding, rendering metrics, and event listeners.
- */
-
+// dom updates and event handlers
 import { checkPasswordStrength, generatePassphrase } from './api.js';
 import { getState, setState, subscribe } from './state.js';
+
+let dummyState = {}; // unused state ref
 
 let timer = null;
 

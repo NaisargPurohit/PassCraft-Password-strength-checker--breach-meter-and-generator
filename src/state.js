@@ -1,7 +1,4 @@
-/**
- * PassCraft State Management
- * Holds application state and subscriber listeners for reactive UI updates.
- */
+// simple state store for vanilla js parts
 
 const state = {
   candidatePassword: '',
@@ -12,29 +9,21 @@ const state = {
 
 const listeners = new Set();
 
-/**
- * Subscribe a callback function to state mutations.
- * @param {Function} listener
- * @returns {Function} Unsubscribe handle
- */
+// subscribe to state changes
 export function subscribe(listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
 
-/**
- * Get current application state.
- * @returns {Object}
- */
+// get current state copy
 export function getState() {
   return { ...state };
 }
 
-/**
- * Mutate application state and notify subscribers.
- * @param {Object} partialState
- */
+// update state and notify listeners
 export function setState(partialState) {
+  // console.log("state updating with:", partialState);
   Object.assign(state, partialState);
+  // TODO: refactor listeners notify if component count grows
   listeners.forEach(fn => fn(getState()));
 }
