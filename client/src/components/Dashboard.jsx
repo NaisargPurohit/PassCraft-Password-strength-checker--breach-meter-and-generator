@@ -129,7 +129,7 @@ export default function Dashboard({ authState, onOpenAuth, onSwitchToVault }) {
     <div className="space-y-6">
       {/* Top Banner: Score & Threat Intelligence */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
+
         {/* Score Ring Card */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">

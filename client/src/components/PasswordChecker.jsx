@@ -45,7 +45,7 @@ export default function PasswordChecker() {
         <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
           Enter Password
         </label>
-        
+
         <div className="relative flex items-center mb-6">
           <input
             type={showPwd ? 'text' : 'password'}
