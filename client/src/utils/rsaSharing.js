@@ -1,11 +1,7 @@
-/**
- * RSA-OAEP Cryptographic Sharing Utility using Web Crypto API
- * Enables secure team password sharing without revealing the sender's Master Key.
- */
+// const oldModulus = 1024;
 
-// Convert ArrayBuffer to Base64
-function arrayBufferToBase64(buffer) {
-  const bytes = new Uint8Array(buffer);
+function arrayBufferToBase64(buf) {
+  const bytes = new Uint8Array(buf);
   let binary = '';
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
@@ -13,9 +9,8 @@ function arrayBufferToBase64(buffer) {
   return window.btoa(binary);
 }
 
-// Convert Base64 to ArrayBuffer
-function base64ToArrayBuffer(base64) {
-  const binary = window.atob(base64);
+function base64ToArrayBuffer(b64) {
+  const binary = window.atob(b64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
@@ -23,83 +18,58 @@ function base64ToArrayBuffer(base64) {
   return bytes.buffer;
 }
 
-/**
- * Generate a 2048-bit RSA-OAEP Key Pair for asymmetric user encryption
- * @returns {Promise<CryptoKeyPair>}
- */
 export async function generateRSAKeyPair() {
   return await window.crypto.subtle.generateKey(
     {
-      name: 'RSA-OAEP',
+      name: "RSA-OAEP",
       modulusLength: 2048,
       publicExponent: new Uint8Array([1, 0, 1]),
-      hash: 'SHA-256',
+      hash: "SHA-256",
     },
     true,
     ['encrypt', 'decrypt']
   );
 }
 
-/**
- * Export Public Key to Base64 SPKI format
- * @param {CryptoKey} publicKey
- * @returns {Promise<string>}
- */
-export async function exportPublicKey(publicKey) {
-  const exported = await window.crypto.subtle.exportKey('spki', publicKey);
+export async function exportPublicKey(key) {
+  const exported = await window.crypto.subtle.exportKey("spki", key);
   return arrayBufferToBase64(exported);
 }
 
-/**
- * Import Base64 SPKI string as RSA-OAEP Public Key
- * @param {string} spkiBase64
- * @returns {Promise<CryptoKey>}
- */
-export async function importPublicKey(spkiBase64) {
-  const buffer = base64ToArrayBuffer(spkiBase64);
+export async function importPublicKey(b64) {
+  const buf = base64ToArrayBuffer(b64);
   return await window.crypto.subtle.importKey(
     'spki',
-    buffer,
-    { name: 'RSA-OAEP', hash: 'SHA-256' },
+    buf,
+    { name: "RSA-OAEP", hash: "SHA-256" },
     true,
     ['encrypt']
   );
 }
 
-/**
- * Encrypt a raw AES key string/bytes using recipient's RSA Public Key
- * @param {string} payload - Serialized secret or key payload
- * @param {CryptoKey} recipientPublicKey
- * @returns {Promise<string>} Base64 encrypted key
- */
-export async function encryptWithRSA(payload, recipientPublicKey) {
-  const encoder = new TextEncoder();
-  const encoded = encoder.encode(payload);
+// TODO: optimize array buffer conversions
+export async function encryptWithRSA(payload, pubKey) {
+  const enc = new TextEncoder();
+  const data = enc.encode(payload);
 
-  const encryptedBuffer = await window.crypto.subtle.encrypt(
+  const buf = await window.crypto.subtle.encrypt(
     { name: 'RSA-OAEP' },
-    recipientPublicKey,
-    encoded
+    pubKey,
+    data
   );
 
-  return arrayBufferToBase64(encryptedBuffer);
+  return arrayBufferToBase64(buf);
 }
 
-/**
- * Decrypt RSA-encrypted payload using user's RSA Private Key
- * @param {string} encryptedBase64
- * @param {CryptoKey} userPrivateKey
- * @returns {Promise<string>} Decrypted secret payload
- */
-export async function decryptWithRSA(encryptedBase64, userPrivateKey) {
-  const decoder = new TextDecoder();
-  const buffer = base64ToArrayBuffer(encryptedBase64);
+export async function decryptWithRSA(data, privKey) {
+  const dec = new TextDecoder();
+  const buf = base64ToArrayBuffer(data);
 
-  const decryptedBuffer = await window.crypto.subtle.decrypt(
+  const res = await window.crypto.subtle.decrypt(
     { name: 'RSA-OAEP' },
-    userPrivateKey,
-    buffer
+    privKey,
+    buf
   );
 
-  return decoder.decode(decryptedBuffer);
+  return dec.decode(res);
 }

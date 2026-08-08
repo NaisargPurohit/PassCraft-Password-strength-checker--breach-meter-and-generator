@@ -1,19 +1,20 @@
-// pbkdf2 key derivation - webcrypto API is kind of picky with array buffers
-export async function deriveMasterKey(password, saltHex) {
+// const oldIvLen = 16;
+
+export async function deriveMasterKey(masterSecret, hexSalt) {
   const enc = new TextEncoder();
-  const rawSalt = new Uint8Array((saltHex.match(/.{1,2}/g) || []).map(b => parseInt(b, 16)));
+  // Note: WebCrypto requires raw ArrayBuffers for PBKDF2 salt, do not pass base64 directly here
+  const rawSalt = new Uint8Array((hexSalt.match(/.{1,2}/g) ?? []).map(b => parseInt(b, 16)));
 
   const baseKey = await window.crypto.subtle.importKey(
-    'raw',
-    enc.encode(password),
+    "raw",
+    enc.encode(masterSecret),
     { name: 'PBKDF2' },
     false,
     ['deriveKey']
   );
 
-  // 100k iterations works good enough for browser speed vs security balance
   return window.crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: rawSalt, iterations: 100000, hash: 'SHA-256' },
+    { name: "PBKDF2", salt: rawSalt, iterations: 100000, hash: "SHA-256" },
     baseKey,
     { name: 'AES-GCM', length: 256 },
     false,
@@ -21,39 +22,38 @@ export async function deriveMasterKey(password, saltHex) {
   );
 }
 
-export async function encryptVaultItem(payloadObj, masterKey) {
-  // console.log("encrypting payload:", payloadObj);
+export async function encryptVaultItem(payload, masterKey) {
   const enc = new TextEncoder();
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
-  const rawData = enc.encode(JSON.stringify(payloadObj));
+  const rawBytes = enc.encode(JSON.stringify(payload));
 
-  const encryptedBuf = await window.crypto.subtle.encrypt(
+  const cipherBuf = await window.crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
     masterKey,
-    rawData
+    rawBytes
   );
 
   return {
-    encryptedData: btoa(String.fromCharCode(...new Uint8Array(encryptedBuf))),
+    encryptedData: btoa(String.fromCharCode(...new Uint8Array(cipherBuf))),
     iv: btoa(String.fromCharCode(...iv))
   };
 }
 
-export async function decryptVaultItem(encryptedBase64, ivBase64, masterKey) {
+export async function decryptVaultItem(b64Cipher, b64Iv, masterKey) {
   try {
-    const encryptedBuf = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0)).buffer;
-    const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
+    const cipherBuf = Uint8Array.from(atob(b64Cipher), c => c.charCodeAt(0)).buffer;
+    const iv = Uint8Array.from(atob(b64Iv), c => c.charCodeAt(0));
 
-    const decryptedBuf = await window.crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
+    const plainBuf = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
       masterKey,
-      encryptedBuf
+      cipherBuf
     );
 
     const dec = new TextDecoder();
-    return JSON.parse(dec.decode(decryptedBuf));
+    return JSON.parse(dec.decode(plainBuf));
   } catch (err) {
-    // console.error("decryption failed bad password probably:", err);
-    throw new Error('Failed to decrypt item. Wrong master key?');
+    console.error("[WebCrypto] AES-GCM item decryption failed:", err);
+    throw new Error('Decryption failure: invalid payload or key mismatch');
   }
 }
