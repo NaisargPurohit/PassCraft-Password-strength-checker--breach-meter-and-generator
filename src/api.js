@@ -5,7 +5,7 @@
 
 /**
  * Sends a candidate password to the backend analysis endpoint.
- * @param {string} password 
+ * @param {string} password
  * @returns {Promise<Object>}
  */
 export async function checkPasswordStrength(password) {

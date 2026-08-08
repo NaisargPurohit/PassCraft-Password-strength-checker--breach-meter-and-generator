@@ -14,7 +14,7 @@ const listeners = new Set();
 
 /**
  * Subscribe a callback function to state mutations.
- * @param {Function} listener 
+ * @param {Function} listener
  * @returns {Function} Unsubscribe handle
  */
 export function subscribe(listener) {
@@ -32,7 +32,7 @@ export function getState() {
 
 /**
  * Mutate application state and notify subscribers.
- * @param {Object} partialState 
+ * @param {Object} partialState
  */
 export function setState(partialState) {
   Object.assign(state, partialState);
