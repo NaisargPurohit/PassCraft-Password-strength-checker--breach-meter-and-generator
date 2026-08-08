@@ -169,7 +169,7 @@ window.addEventListener('message', (event) => {
 
     if (activeInput) {
       const form = activeInput.closest('form') || document;
-      
+
       const pwdInput = activeInput.type === 'password'
         ? activeInput
         : form.querySelector("input[type='password']");
