@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../api';
 
 export default function AdminDashboard({ authState, onOpenAuth }) {
   const { token, user } = authState || {};
@@ -21,7 +22,7 @@ export default function AdminDashboard({ authState, onOpenAuth }) {
       setError('');
       try {
         // Fetch Users
-        const usersRes = await fetch('/api/admin/users', {
+        const usersRes = await fetch(`${API_BASE_URL}/api/admin/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (usersRes.ok) {
@@ -37,7 +38,7 @@ export default function AdminDashboard({ authState, onOpenAuth }) {
         if (actionFilter !== 'ALL') queryParams.append('action', actionFilter);
         if (searchQuery) queryParams.append('search', searchQuery);
 
-        const logsRes = await fetch(`/api/admin/audit-logs?${queryParams.toString()}`, {
+        const logsRes = await fetch(`${API_BASE_URL}/api/admin/audit-logs?${queryParams.toString()}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -58,7 +59,7 @@ export default function AdminDashboard({ authState, onOpenAuth }) {
   // Update User Role (Admin only)
   const handleRoleChange = async (userId, newRole) => {
     try {
-      const res = await fetch(`/api/admin/users/${userId}/role`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/role`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

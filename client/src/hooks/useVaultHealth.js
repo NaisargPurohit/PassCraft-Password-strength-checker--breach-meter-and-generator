@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { decryptData } from '../utils/crypto';
 import { analyzeVaultHealth } from '../utils/vaultHealth';
+import { API_BASE_URL } from '../api';
 
 export function useVaultHealth(token, masterKey) {
   const [healthReport, setHealthReport] = useState(null);
@@ -15,7 +16,7 @@ export function useVaultHealth(token, masterKey) {
     const syncVaultHealthMetrics = async () => {
       setLoading(true);
       try {
-        const vaultRes = await fetch('/api/vault', {
+        const vaultRes = await fetch(`${API_BASE_URL}/api/vault`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -46,7 +47,7 @@ export function useVaultHealth(token, masterKey) {
           if (isMounted) setHealthReport(report);
         }
 
-        const threatRes = await fetch('/api/auth/threat-intel', {
+        const threatRes = await fetch(`${API_BASE_URL}/api/auth/threat-intel`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

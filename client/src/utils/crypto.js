@@ -57,3 +57,7 @@ export async function decryptVaultItem(b64Cipher, b64Iv, masterKey) {
     throw new Error('Decryption failure: invalid payload or key mismatch');
   }
 }
+
+export const encryptData = encryptVaultItem;
+export const decryptData = decryptVaultItem;
+

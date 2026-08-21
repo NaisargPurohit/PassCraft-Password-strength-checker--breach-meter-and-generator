@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import PassphraseGenerator from './PassphraseGenerator';
 import SecurityChecklist from './SecurityChecklist';
 import StrengthMeter from "./StrengthMeter";
+import { API_BASE_URL } from '../api';
 
 export default function PasswordChecker() {
   const [candidatePwd, setCandidatePwd] = useState("");
@@ -16,7 +17,7 @@ export default function PasswordChecker() {
 
     const timer = setTimeout(async () => {
       try {
-        const checkRes = await fetch("/api/check", {
+        const checkRes = await fetch(`${API_BASE_URL}/api/check`, {
           method: "POST",
           headers: { 'Content-Type': "application/json" },
           body: JSON.stringify({ password: candidatePwd }),

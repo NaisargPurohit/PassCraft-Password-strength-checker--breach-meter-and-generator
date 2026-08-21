@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../api';
 
 export default function PassphraseGenerator() {
   const [passphrase, setPassphrase] = useState('');
@@ -8,7 +9,7 @@ export default function PassphraseGenerator() {
   const triggerPassphraseGen = async () => {
     setLoading(true);
     try {
-      const genRes = await fetch('/api/generate');
+      const genRes = await fetch(`${API_BASE_URL}/api/generate`);
       if (genRes.ok) {
         const genResult = await genRes.json();
         setPassphrase(genResult.password ?? '');

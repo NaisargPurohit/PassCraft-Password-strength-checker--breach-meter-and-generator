@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { encryptData, decryptData } from '../utils/crypto';
+import { API_BASE_URL } from '../api';
 
 export default function Vault({ authState, onOpenAuth }) {
   const { token, user, masterKey } = authState || {};
@@ -26,7 +27,7 @@ export default function Vault({ authState, onOpenAuth }) {
   const recordAuditLog = async (action, vaultItemId, itemTitle) => {
     if (!token) return;
     try {
-      await fetch('/api/admin/audit-logs', {
+      await fetch(`${API_BASE_URL}/api/admin/audit-logs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,7 +46,7 @@ export default function Vault({ authState, onOpenAuth }) {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch('/api/vault', {
+        const res = await fetch(`${API_BASE_URL}/api/vault`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -120,7 +121,7 @@ export default function Vault({ authState, onOpenAuth }) {
       );
 
       const method = editingId ? 'PUT' : 'POST';
-      const endpoint = editingId ? `/api/vault/${editingId}` : '/api/vault';
+      const endpoint = editingId ? `${API_BASE_URL}/api/vault/${editingId}` : `${API_BASE_URL}/api/vault`;
 
       const res = await fetch(endpoint, {
         method,
@@ -169,7 +170,7 @@ export default function Vault({ authState, onOpenAuth }) {
     if (!window.confirm('Are you sure you want to delete this vault item?')) return;
 
     try {
-      const res = await fetch(`/api/vault/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/vault/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

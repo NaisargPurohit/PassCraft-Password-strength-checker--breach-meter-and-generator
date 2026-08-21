@@ -1,9 +1,12 @@
 // api fetch helper functions
+const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL)
+  ? import.meta.env.VITE_API_URL
+  : (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : '');
 
 // check password strength against backend api
 export async function checkPasswordStrength(pwd) {
   // console.log("sending password to check:", pwd);
-  const res = await fetch('/api/check', {
+  const res = await fetch(`${API_BASE_URL}/api/check`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password: pwd })
@@ -19,7 +22,7 @@ export async function checkPasswordStrength(pwd) {
 
 // get a new passphrase
 export async function generatePassphrase() {
-  const res = await fetch('/api/generate');
+  const res = await fetch(`${API_BASE_URL}/api/generate`);
   if (!res.ok) {
     throw new Error(`Passphrase generation error: ${res.status}`);
   }
